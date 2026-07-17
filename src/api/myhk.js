@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const MYHK_API_KEY = import.meta.env.VITE_MYHK_API_KEY
-const MYHK_API_BASE = '/myhk/open/music'
+const MYHK_API_BASE = 'https://myhkw.cn/open/music'
 
 const myhkRequest = axios.create({
   baseURL: MYHK_API_BASE,
