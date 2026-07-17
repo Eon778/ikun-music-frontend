@@ -1,12 +1,17 @@
 import axios from 'axios'
 
+const isProduction = import.meta.env.PROD
+
 const request = axios.create({
-  baseURL: '/api',
-  timeout: 10000
+  baseURL: isProduction ? '' : '/api',
+  timeout: isProduction ? 3000 : 10000
 })
 
 request.interceptors.request.use(
   config => {
+    if (isProduction) {
+      return Promise.reject(new Error('Production mode: no backend API'))
+    }
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
