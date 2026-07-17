@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>音频测试页面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    audio {
+      width: 100%;
+      margin: 20px 0;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+    .status.success {
+      background: rgba(76, 175, 80, 0.3);
+      color: #a5d6a7;
+    }
+    .status.error {
+      background: rgba(244, 67, 54, 0.3);
+      color: #ef9a9a;
+    }
+    .status.info {
+      background: rgba(33, 150, 243, 0.3);
+      color: #90caf9;
+    }
+    .test-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 20px;
+    }
+    .test-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    .debug-info {
+      margin-top: 30px;
+      text-align: left;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 音频静态资源测试</h1>
+    <p>测试本地音乐文件是否能正常加载和播放</p>
+    
+    <audio id="audioPlayer" controls>
+      <source src="/music/song1.mp3" type="audio/mpeg">
+      您的浏览器不支持音频播放。
+    </audio>
+    
+    <div id="status" class="status info">等待加载...</div>
+    
+    <button class="test-btn" onclick="testAudio()">开始测试</button>
+    
+    <div class="debug-info">
+      <strong>资源路径：</strong>/music/song1.mp3<br>
+      <strong>完整URL：</strong><span id="fullUrl"></span><br>
+      <strong>错误信息：</strong><span id="errorMsg">无</span>
+    </div>
+  </div>
+
+  <script>
+    const audio = document.getElementById('audioPlayer');
+    const status = document.getElementById('status');
+    const fullUrl = document.getElementById('fullUrl');
+    const errorMsg = document.getElementById('errorMsg');
+    
+    fullUrl.textContent = window.location.origin + '/music/song1.mp3';
+    
+    audio.addEventListener('loadedmetadata', function() {
+      status.textContent = `✓ 加载成功！时长：${formatTime(audio.duration)}`;
+      status.className = 'status success';
+      errorMsg.textContent = '无';
+    });
+    
+    audio.addEventListener('canplay', function() {
+      status.textContent = `✓ 可以播放！时长：${formatTime(audio.duration)}`;
+      status.className = 'status success';
+    });
+    
+    audio.addEventListener('error', function(e) {
+      let err = '未知错误';
+      switch(audio.error.code) {
+        case 1: err = 'MEDIA_ERR_ABORTED - 资源被中止'; break;
+        case 2: err = 'MEDIA_ERR_NETWORK - 网络错误'; break;
+        case 3: err = 'MEDIA_ERR_DECODE - 解码错误'; break;
+        case 4: err = 'MEDIA_ERR_SRC_NOT_SUPPORTED - 资源格式不支持'; break;
+      }
+      status.textContent = `✗ 加载失败：${err}`;
+      status.className = 'status error';
+      errorMsg.textContent = JSON.stringify(audio.error);
+    });
+    
+    audio.addEventListener('stalled', function() {
+      status.textContent = '⚠ 资源加载停滞';
+      status.className = 'status error';
+    });
+    
+    audio.addEventListener('suspend', function() {
+      status.textContent = '⚠ 资源加载暂停';
+      status.className = 'status info';
+    });
+    
+    function testAudio() {
+      status.textContent = '正在测试播放...';
+      status.className = 'status info';
+      errorMsg.textContent = '无';
+      
+      audio.play().then(() => {
+        status.textContent = `✓ 播放成功！时长：${formatTime(audio.duration)}`;
+        status.className = 'status success';
+      }).catch(e => {
+        status.textContent = `✗ 播放失败：${e.message}`;
+        status.className = 'status error';
+        errorMsg.textContent = e.message;
+      });
+    }
+    
+    function formatTime(seconds) {
+      if (!isFinite(seconds)) return '--:--';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+  </script>
+</body>
+</html>
